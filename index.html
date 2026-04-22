@@ -1,0 +1,672 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>设计资讯虾 🦐</title>
+<style>
+  :root {
+    --bg: #f5f6fa;
+    --card: #ffffff;
+    --primary: #6c63ff;
+    --primary-light: #ede9ff;
+    --accent: #ff6b6b;
+    --text: #2d2d3a;
+    --text-sub: #7c7c99;
+    --border: #e8e8f0;
+    --tag-bg: #f0f0fa;
+    --shadow: 0 2px 12px rgba(108,99,255,0.08);
+    --shadow-hover: 0 8px 28px rgba(108,99,255,0.16);
+    --fav: #ffb347;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: -apple-system, BlinkMacSystemFont, 'PingFang SC', 'Microsoft YaHei', sans-serif; background: var(--bg); color: var(--text); min-height: 100vh; }
+
+  /* ===== HEADER ===== */
+  .header { background: #fff; border-bottom: 1px solid var(--border); position: sticky; top: 0; z-index: 100; box-shadow: 0 2px 8px rgba(0,0,0,0.06); }
+  .header-inner { max-width: 1400px; margin: 0 auto; padding: 0 24px; display: flex; align-items: center; gap: 32px; height: 60px; }
+  .logo { font-size: 18px; font-weight: 700; color: var(--primary); white-space: nowrap; display: flex; align-items: center; gap: 6px; }
+  .logo span { font-size: 22px; }
+
+  /* ===== TABS ===== */
+  .tabs { display: flex; gap: 4px; flex: 1; overflow-x: auto; scrollbar-width: none; }
+  .tabs::-webkit-scrollbar { display: none; }
+  .tab { padding: 6px 18px; border-radius: 20px; cursor: pointer; font-size: 14px; font-weight: 500; white-space: nowrap; transition: all .2s; border: none; background: transparent; color: var(--text-sub); }
+  .tab:hover { background: var(--primary-light); color: var(--primary); }
+  .tab.active { background: var(--primary); color: #fff; }
+  .tab-fav { color: var(--fav) !important; }
+  .tab-fav.active { background: var(--fav) !important; color: #fff !important; }
+
+  /* ===== SEARCH / FILTER BAR ===== */
+  .toolbar { max-width: 1400px; margin: 20px auto 0; padding: 0 24px; display: flex; align-items: center; gap: 12px; flex-wrap: wrap; }
+  .search-box { position: relative; flex: 1; min-width: 200px; max-width: 360px; }
+  .search-box input { width: 100%; padding: 9px 16px 9px 38px; border: 1px solid var(--border); border-radius: 24px; font-size: 14px; outline: none; background: #fff; transition: border .2s; }
+  .search-box input:focus { border-color: var(--primary); }
+  .search-box .icon { position: absolute; left: 12px; top: 50%; transform: translateY(-50%); color: var(--text-sub); font-size: 15px; }
+  .filter-group { display: flex; gap: 8px; flex-wrap: wrap; }
+  .filter-btn { padding: 7px 14px; border-radius: 20px; border: 1px solid var(--border); background: #fff; font-size: 13px; cursor: pointer; transition: all .2s; color: var(--text-sub); }
+  .filter-btn:hover, .filter-btn.active { border-color: var(--primary); color: var(--primary); background: var(--primary-light); }
+  .sort-select { padding: 7px 14px; border-radius: 20px; border: 1px solid var(--border); background: #fff; font-size: 13px; color: var(--text); outline: none; cursor: pointer; }
+  .count-badge { font-size: 12px; color: var(--text-sub); margin-left: auto; white-space: nowrap; }
+
+  /* ===== SECTION ===== */
+  .section { max-width: 1400px; margin: 24px auto 0; padding: 0 24px; }
+  .section-header { display: flex; align-items: center; gap: 12px; margin-bottom: 16px; }
+  .section-icon { font-size: 22px; }
+  .section-title { font-size: 18px; font-weight: 700; }
+  .section-count { font-size: 13px; color: var(--text-sub); background: var(--tag-bg); padding: 2px 10px; border-radius: 12px; }
+
+  /* ===== GRID ===== */
+  .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 16px; }
+
+  /* ===== CARD ===== */
+  .card { background: var(--card); border-radius: 14px; box-shadow: var(--shadow); overflow: hidden; transition: all .25s; position: relative; display: flex; flex-direction: column; }
+  .card:hover { box-shadow: var(--shadow-hover); transform: translateY(-3px); }
+  .card-thumb { position: relative; width: 100%; padding-top: 56.25%; background: var(--tag-bg); overflow: hidden; }
+  .card-thumb img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; transition: transform .3s; }
+  .card:hover .card-thumb img { transform: scale(1.04); }
+  .card-thumb .platform-badge { position: absolute; top: 8px; left: 8px; background: rgba(0,0,0,.55); color: #fff; font-size: 11px; padding: 2px 8px; border-radius: 10px; backdrop-filter: blur(4px); }
+  .card-thumb .type-badge { position: absolute; top: 8px; right: 40px; background: var(--primary); color: #fff; font-size: 11px; padding: 2px 8px; border-radius: 10px; }
+  .fav-btn { position: absolute; top: 8px; right: 8px; width: 28px; height: 28px; border-radius: 50%; border: none; background: rgba(255,255,255,.9); cursor: pointer; display: flex; align-items: center; justify-content: center; font-size: 14px; transition: all .2s; z-index: 2; }
+  .fav-btn:hover { transform: scale(1.2); background: #fff; }
+  .fav-btn.faved { background: var(--fav); }
+  .card-body { padding: 14px; flex: 1; display: flex; flex-direction: column; gap: 8px; }
+  .card-title { font-size: 14px; font-weight: 600; line-height: 1.5; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+  .card-title a { color: var(--text); text-decoration: none; }
+  .card-title a:hover { color: var(--primary); }
+  .card-meta { display: flex; align-items: center; gap: 8px; font-size: 12px; color: var(--text-sub); }
+  .card-author { display: flex; align-items: center; gap: 5px; font-size: 13px; color: var(--text-sub); }
+  .card-author .avatar { width: 20px; height: 20px; border-radius: 50%; background: var(--primary-light); display: flex; align-items: center; justify-content: center; font-size: 10px; color: var(--primary); font-weight: 700; flex-shrink: 0; }
+  .card-stats { display: flex; gap: 12px; font-size: 12px; color: var(--text-sub); margin-top: auto; padding-top: 8px; border-top: 1px solid var(--border); }
+  .stat-item { display: flex; align-items: center; gap: 3px; }
+  .card-date { font-size: 11px; color: var(--text-sub); margin-left: auto; }
+  .new-badge { position: absolute; top: 0; left: 0; background: var(--accent); color: #fff; font-size: 10px; font-weight: 700; padding: 2px 8px; border-radius: 0 0 8px 0; }
+
+  /* ===== FAV PAGE ===== */
+  .fav-empty { text-align: center; padding: 80px 24px; color: var(--text-sub); }
+  .fav-empty .emoji { font-size: 48px; margin-bottom: 16px; }
+  .fav-empty p { font-size: 15px; }
+
+  /* ===== FOOTER ===== */
+  .footer { text-align: center; padding: 40px 24px; color: var(--text-sub); font-size: 13px; }
+
+  /* hidden */
+  [data-hidden="true"] { display: none !important; }
+
+  /* scrollbar */
+  ::-webkit-scrollbar { width: 6px; height: 6px; }
+  ::-webkit-scrollbar-track { background: transparent; }
+  ::-webkit-scrollbar-thumb { background: #d0d0e8; border-radius: 3px; }
+</style>
+</head>
+<body>
+
+<!-- HEADER -->
+<div class="header">
+  <div class="header-inner">
+    <div class="logo"><span>🦐</span> 设计资讯虾</div>
+    <div class="tabs" id="mainTabs">
+      <button class="tab active" data-tab="all">🏠 全部</button>
+      <button class="tab" data-tab="selected">✨ 精选</button>
+      <button class="tab" data-tab="poster">🖼️ AI生海报</button>
+      <button class="tab" data-tab="logo">🎨 AI生Logo</button>
+      <button class="tab" data-tab="ui">💻 AI生交互/UI</button>
+      <button class="tab" data-tab="review">🔬 AI工具测评</button>
+      <button class="tab tab-fav" data-tab="favorites">⭐ 我的收藏</button>
+    </div>
+  </div>
+</div>
+
+<!-- TOOLBAR -->
+<div class="toolbar" id="toolbar">
+  <div class="search-box">
+    <span class="icon">🔍</span>
+    <input type="text" id="searchInput" placeholder="搜索视频标题、作者…">
+  </div>
+  <div class="filter-group" id="authorFilter"></div>
+  <select class="sort-select" id="sortSelect">
+    <option value="date-desc">最新优先</option>
+    <option value="date-asc">最旧优先</option>
+    <option value="play-desc">播放最多</option>
+    <option value="collect-desc">收藏最多</option>
+  </select>
+  <span class="count-badge" id="countBadge"></span>
+</div>
+
+<!-- MAIN CONTENT -->
+<div id="mainContent"></div>
+
+<div class="footer">设计资讯虾 🦐 · 自动更新 · 每周一精选 · 每日监控</div>
+
+<script>
+// ============================================================
+// DATA
+// ============================================================
+const VIDEOS = [
+  // ✨ 精选
+  {
+    id: "b_BV1ncwczbEoy",
+    category: "selected",
+    title: "锐评2026年AI生图软件，从夯到拉依次排名！",
+    author: "AI先生李豪",
+    fans: "10.9万",
+    play: 228814,
+    collect: 7258,
+    like: 3784,
+    date: "2026-03-08",
+    platform: "B站",
+    type: "video",
+    url: "https://www.bilibili.com/video/BV1ncwczbEoy",
+    thumb: "https://i2.hdslb.com/bfs/archive/360242927b53dec69d0a55abe05a1967613bfabd.jpg",
+    isNew: true,
+  },
+  {
+    id: "b_BV1eXszz2EBF",
+    category: "selected",
+    title: "【AI生图】小白也能3分钟做出专业级海报，从入门到精通！建议收藏",
+    author: "在下小曾o",
+    fans: "5.3万",
+    play: 135586,
+    collect: 10753,
+    like: 6979,
+    date: "2025-03-26",
+    platform: "B站",
+    type: "video",
+    url: "https://www.bilibili.com/video/BV1eXszz2EBF",
+    thumb: "https://i2.hdslb.com/bfs/archive/a368da24c802e6c7b54d37d1098d9fb4c3a60cf7.jpg",
+    isNew: false,
+  },
+  // 🖼️ 海报
+  {
+    id: "b_BV1eXszz2EBF_p",
+    category: "poster",
+    title: "【AI生图】小白也能3分钟做出专业级海报，从入门到精通！建议收藏",
+    author: "在下小曾o",
+    fans: "5.3万",
+    play: 135586,
+    collect: 10753,
+    like: 6979,
+    date: "2025-03-26",
+    platform: "B站",
+    type: "video",
+    url: "https://www.bilibili.com/video/BV1eXszz2EBF",
+    thumb: "https://i2.hdslb.com/bfs/archive/a368da24c802e6c7b54d37d1098d9fb4c3a60cf7.jpg",
+    isNew: false,
+  },
+  {
+    id: "b_BV129M8zTEZR",
+    category: "poster",
+    title: "品牌设计底层逻辑全解析！LOGO/VIS/视觉锤实战教程，提升设计思维！",
+    author: "AI设计师佩奇",
+    fans: "5.1万",
+    play: null,
+    collect: null,
+    like: null,
+    date: "2025-05-01",
+    platform: "B站",
+    type: "video",
+    url: "https://www.bilibili.com/video/BV129M8zTEZR",
+    thumb: "",
+    isNew: false,
+  },
+  // 🎨 Logo
+  {
+    id: "b_BV1SBjuzKETN",
+    category: "logo",
+    title: "3分钟教会你用AI做Logo设计！位图转矢量图",
+    author: "陈陈菲懂点AI",
+    fans: "811",
+    play: 37459,
+    collect: 1351,
+    like: 462,
+    date: "2025-05-24",
+    platform: "B站",
+    type: "video",
+    url: "https://www.bilibili.com/video/BV1SBjuzKETN",
+    thumb: "https://i2.hdslb.com/bfs/archive/544d05d78589d4e844e69be04f2bceb27b82d2bd.jpg",
+    isNew: false,
+  },
+  {
+    id: "b_BV1aS3Dz3Edn",
+    category: "logo",
+    title: "LOGO网格生成器AI软件LOGO标准制作插件",
+    author: "张家佳设计",
+    fans: "—",
+    play: 3514,
+    collect: 121,
+    like: 73,
+    date: "2025-07-05",
+    platform: "B站",
+    type: "video",
+    url: "https://www.bilibili.com/video/BV1aS3Dz3Edn",
+    thumb: "https://i0.hdslb.com/bfs/archive/06b91bf275cbc4f66f436f3eaa62d4be58257e5a.jpg",
+    isNew: false,
+  },
+  // 💻 UI交互
+  {
+    id: "b_BV1xLfNY5EQ4",
+    category: "ui",
+    title: "DeepSeek+妙多联手做UI！8小时工作8分钟搞定！",
+    author: "UX恒恒战神",
+    fans: "5.2万",
+    play: 108150,
+    collect: 7581,
+    like: 3139,
+    date: "2025-04-02",
+    platform: "B站",
+    type: "video",
+    url: "https://www.bilibili.com/video/BV1xLfNY5EQ4",
+    thumb: "https://i0.hdslb.com/bfs/archive/9418c484238f907775657db3281f26a3d0f5d970.jpg",
+    isNew: true,
+  },
+  {
+    id: "b_BV1P4dHB6Esb",
+    category: "ui",
+    title: "🚀实测Claude Design！Opus 4.7驱动AI设计神器彻底颠覆Figma！一句话生成精美UI原型",
+    author: "AI超元域",
+    fans: "9.2万",
+    play: 17549,
+    collect: 607,
+    like: 434,
+    date: "2026-04-19",
+    platform: "B站",
+    type: "video",
+    url: "https://www.bilibili.com/video/BV1P4dHB6Esb",
+    thumb: "https://i1.hdslb.com/bfs/archive/c1b74298dad3f43a9c5841e22fb583a81740a057.jpg",
+    isNew: true,
+  },
+  // 🔬 测评
+  {
+    id: "b_BV1ncwczbEoy_r",
+    category: "review",
+    title: "锐评2026年AI生图软件，从夯到拉依次排名！",
+    author: "AI先生李豪",
+    fans: "10.9万",
+    play: 228814,
+    collect: 7258,
+    like: 3784,
+    date: "2026-03-08",
+    platform: "B站",
+    type: "video",
+    url: "https://www.bilibili.com/video/BV1ncwczbEoy",
+    thumb: "https://i2.hdslb.com/bfs/archive/360242927b53dec69d0a55abe05a1967613bfabd.jpg",
+    isNew: true,
+  },
+  {
+    id: "b_BV1sKj8zUEut",
+    category: "review",
+    title: "AI知识库那么多，究竟哪个才是适合自己的？全网最新测评来了！",
+    author: "是子鱼AI",
+    fans: "3,710",
+    play: 51795,
+    collect: 2125,
+    like: 830,
+    date: "2025-05-24",
+    platform: "B站",
+    type: "video",
+    url: "https://www.bilibili.com/video/BV1sKj8zUEut",
+    thumb: "https://i1.hdslb.com/bfs/archive/07432697f7b17174f40623ebdf9b337ef870c171.jpg",
+    isNew: false,
+  },
+  // 小红书 设计师雪梨
+  {
+    id: "xhs_xly_1",
+    category: "ui",
+    title: "从0搭建自己的 设计系统 技能（可复用）",
+    author: "设计师雪梨",
+    fans: "1万+",
+    play: null,
+    collect: null,
+    like: 1535,
+    date: "2026-04-20",
+    platform: "小红书",
+    type: "video",
+    url: "https://www.xiaohongshu.com/user/profile/591afdfa50c4b45befe6afaa",
+    thumb: "https://sns-webpic-qc.xhscdn.com/202604221202/d636ae31f879a201368470c5186e644f/1040g00831tapdij3m20049ggaruvlbtav0ap8f8!nc_n_webp_mw_1",
+    isNew: true,
+  },
+  {
+    id: "xhs_xly_2",
+    category: "ui",
+    title: "Pixso X Claude Code，设计到代码拿捏！",
+    author: "设计师雪梨",
+    fans: "1万+",
+    play: null,
+    collect: null,
+    like: 37,
+    date: "2026-04-18",
+    platform: "小红书",
+    type: "video",
+    url: "https://www.xiaohongshu.com/user/profile/591afdfa50c4b45befe6afaa",
+    thumb: "https://sns-webpic-qc.xhscdn.com/202604221202/2f04a5e8bf6e939af986295ec6d91637/1040g00831v4jdgf9ii0049ggaruvlbtapodlgi0!nc_n_webp_mw_1",
+    isNew: true,
+  },
+  {
+    id: "xhs_xly_3",
+    category: "logo",
+    title: "造字，创skill，存Brand kit，提升出图质量！",
+    author: "设计师雪梨",
+    fans: "1万+",
+    play: null,
+    collect: null,
+    like: 36,
+    date: "2026-04-16",
+    platform: "小红书",
+    type: "video",
+    url: "https://www.xiaohongshu.com/user/profile/591afdfa50c4b45befe6afaa",
+    thumb: "https://sns-webpic-qc.xhscdn.com/202604221202/999aeef00491e7d8008967b99075edc4/1040g00831v5pnvs42g0049ggaruvlbta8d6kpoo!nc_n_webp_mw_1",
+    isNew: true,
+  },
+  {
+    id: "xhs_xly_4",
+    category: "review",
+    title: "测 视频/PPT/网页/ 手机APP/ design system",
+    author: "设计师雪梨",
+    fans: "1万+",
+    play: null,
+    collect: null,
+    like: 217,
+    date: "2026-04-14",
+    platform: "小红书",
+    type: "video",
+    url: "https://www.xiaohongshu.com/user/profile/591afdfa50c4b45befe6afaa",
+    thumb: "https://sns-webpic-qc.xhscdn.com/202604221202/962d3033e6940af91f16c030b9d597aa/1040g00831v3i474mia0g49ggaruvlbtac0ldv18!nc_n_webp_mw_1",
+    isNew: true,
+  },
+  {
+    id: "xhs_xly_5",
+    category: "ui",
+    title: "AI自动检查设计与线上效果/附skill可下载",
+    author: "设计师雪梨",
+    fans: "1万+",
+    play: null,
+    collect: null,
+    like: 792,
+    date: "2026-03-20",
+    platform: "小红书",
+    type: "video",
+    url: "https://www.xiaohongshu.com/user/profile/591afdfa50c4b45befe6afaa",
+    thumb: "https://sns-webpic-qc.xhscdn.com/202604221202/1cd444aae97b9cdd2c0e978b7108373c/1040g00831umq22bkiq0049ggaruvlbta8grec4o!nc_n_webp_mw_1",
+    isNew: false,
+  },
+  {
+    id: "xhs_xly_6",
+    category: "ui",
+    title: "教 AI 学会你的设计系统 +读懂产品上下文",
+    author: "设计师雪梨",
+    fans: "1万+",
+    play: null,
+    collect: null,
+    like: 173,
+    date: "2026-03-10",
+    platform: "小红书",
+    type: "video",
+    url: "https://www.xiaohongshu.com/user/profile/591afdfa50c4b45befe6afaa",
+    thumb: "https://sns-webpic-qc.xhscdn.com/202604221202/26f8bf9231628146b96b6d6229185be5/1040g00831ufu09tfiq0049ggaruvlbta3tdoh58!nc_n_webp_mw_1",
+    isNew: false,
+  },
+  {
+    id: "xhs_xly_7",
+    category: "review",
+    title: "（教程）Skill+自动化流程",
+    author: "设计师雪梨",
+    fans: "1万+",
+    play: null,
+    collect: null,
+    like: 56,
+    date: "2026-04-10",
+    platform: "小红书",
+    type: "video",
+    url: "https://www.xiaohongshu.com/user/profile/591afdfa50c4b45befe6afaa",
+    thumb: "https://sns-webpic-qc.xhscdn.com/202604221202/963cb0c46c3b66a89af0f701f05d54ce/1040g2sg31uva9dp0ig7049ggaruvlbtas1lhsio!nc_n_webp_mw_1",
+    isNew: false,
+  },
+  {
+    id: "xhs_xly_8",
+    category: "review",
+    title: "GLM5.1 做复杂项目有多强？前后端全流程教程",
+    author: "设计师雪梨",
+    fans: "1万+",
+    play: null,
+    collect: null,
+    like: 38,
+    date: "2026-04-08",
+    platform: "小红书",
+    type: "video",
+    url: "https://www.xiaohongshu.com/user/profile/591afdfa50c4b45befe6afaa",
+    thumb: "https://sns-webpic-qc.xhscdn.com/202604221202/2d304b6dc069ca4e3763b204867b472a/1040g00831ut72kj3jq0049ggaruvlbta8atplo0!nc_n_webp_mw_1",
+    isNew: false,
+  },
+  {
+    id: "xhs_xly_9",
+    category: "selected",
+    title: "AI自动检查设计与线上效果/附skill可下载",
+    author: "设计师雪梨",
+    fans: "1万+",
+    play: null,
+    collect: null,
+    like: 792,
+    date: "2026-03-20",
+    platform: "小红书",
+    type: "video",
+    url: "https://www.xiaohongshu.com/user/profile/591afdfa50c4b45befe6afaa",
+    thumb: "https://sns-webpic-qc.xhscdn.com/202604221202/1cd444aae97b9cdd2c0e978b7108373c/1040g00831umq22bkiq0049ggaruvlbta8grec4o!nc_n_webp_mw_1",
+    isNew: false,
+  },
+];
+
+const SECTIONS = [
+  { id: "selected", icon: "✨", title: "精选", tab: "selected" },
+  { id: "poster",   icon: "🖼️", title: "AI生海报", tab: "poster" },
+  { id: "logo",     icon: "🎨", title: "AI生Logo", tab: "logo" },
+  { id: "ui",       icon: "💻", title: "AI生交互/UI", tab: "ui" },
+  { id: "review",   icon: "🔬", title: "AI工具测评", tab: "review" },
+];
+
+// ============================================================
+// STATE
+// ============================================================
+let state = {
+  activeTab: "all",
+  searchQuery: "",
+  authorFilter: "",
+  sort: "date-desc",
+  favorites: new Set(JSON.parse(localStorage.getItem("design_feed_favs") || "[]")),
+};
+
+function saveFavs() {
+  localStorage.setItem("design_feed_favs", JSON.stringify([...state.favorites]));
+}
+
+// ============================================================
+// HELPERS
+// ============================================================
+function fmtNum(n) {
+  if (n == null) return "—";
+  if (n >= 10000) return (n / 10000).toFixed(1) + "万";
+  return n.toLocaleString();
+}
+
+function getAuthors() {
+  const s = new Set(VIDEOS.map(v => v.author));
+  return [...s].sort();
+}
+
+function filterAndSort(videos) {
+  let list = [...videos];
+  if (state.searchQuery) {
+    const q = state.searchQuery.toLowerCase();
+    list = list.filter(v => v.title.toLowerCase().includes(q) || v.author.toLowerCase().includes(q));
+  }
+  if (state.authorFilter) {
+    list = list.filter(v => v.author === state.authorFilter);
+  }
+  list.sort((a, b) => {
+    if (state.sort === "date-desc") return new Date(b.date) - new Date(a.date);
+    if (state.sort === "date-asc")  return new Date(a.date) - new Date(b.date);
+    if (state.sort === "play-desc") return (b.play || 0) - (a.play || 0);
+    if (state.sort === "collect-desc") return (b.collect || 0) - (a.collect || 0);
+    return 0;
+  });
+  return list;
+}
+
+// ============================================================
+// RENDER
+// ============================================================
+function renderCard(v) {
+  const isFav = state.favorites.has(v.id);
+  const favCls = isFav ? "fav-btn faved" : "fav-btn";
+  const favIcon = isFav ? "⭐" : "☆";
+  const thumb = v.thumb
+    ? `<img src="${v.thumb}" alt="${v.title}" loading="lazy" onerror="this.style.display='none'">`
+    : `<div style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-size:32px;color:var(--text-sub)">🎬</div>`;
+  const isNewBadge = v.isNew ? `<div class="new-badge">NEW</div>` : "";
+  const platformColor = v.platform === "B站" ? "#00aeec" : "#ff2442";
+
+  return `
+  <div class="card" data-id="${v.id}">
+    ${isNewBadge}
+    <div class="card-thumb">
+      ${thumb}
+      <div class="platform-badge" style="background:${platformColor}cc">${v.platform}</div>
+      <div class="type-badge">${v.type === "video" ? "🎬" : "📝"}</div>
+      <button class="${favCls}" onclick="toggleFav('${v.id}',event)" title="${isFav ? "取消收藏" : "收藏"}">${favIcon}</button>
+    </div>
+    <div class="card-body">
+      <div class="card-title"><a href="${v.url}" target="_blank">${v.title}</a></div>
+      <div class="card-author">
+        <div class="avatar">${v.author[0]}</div>
+        <span>${v.author}</span>
+        <span style="color:var(--border);margin:0 2px">·</span>
+        <span style="font-size:11px">${v.fans} 粉丝</span>
+      </div>
+      <div class="card-stats">
+        <span class="stat-item">▶️ ${fmtNum(v.play)}</span>
+        <span class="stat-item">⭐ ${fmtNum(v.collect)}</span>
+        <span class="stat-item">👍 ${fmtNum(v.like)}</span>
+        <span class="card-date">${v.date}</span>
+      </div>
+    </div>
+  </div>`;
+}
+
+function renderSection(sec, videos) {
+  const list = filterAndSort(videos.filter(v => v.category === sec.id)).slice(0, 100);
+  if (list.length === 0) return "";
+  return `
+  <div class="section" id="sec-${sec.id}">
+    <div class="section-header">
+      <span class="section-icon">${sec.icon}</span>
+      <span class="section-title">${sec.title}</span>
+      <span class="section-count">${list.length} 条</span>
+    </div>
+    <div class="grid">${list.map(renderCard).join("")}</div>
+  </div>`;
+}
+
+function renderFavorites() {
+  const favs = filterAndSort(VIDEOS.filter(v => state.favorites.has(v.id)));
+  if (favs.length === 0) {
+    return `<div class="fav-empty"><div class="emoji">⭐</div><p>还没有收藏，点击视频卡片右上角的☆收藏吧！</p></div>`;
+  }
+  return `
+  <div class="section">
+    <div class="section-header">
+      <span class="section-icon">⭐</span>
+      <span class="section-title">我的收藏</span>
+      <span class="section-count">${favs.length} 条</span>
+    </div>
+    <div class="grid">${favs.map(renderCard).join("")}</div>
+  </div>`;
+}
+
+function render() {
+  const content = document.getElementById("mainContent");
+  const tab = state.activeTab;
+
+  if (tab === "favorites") {
+    content.innerHTML = renderFavorites();
+    document.getElementById("toolbar").style.display = "flex";
+    document.getElementById("countBadge").textContent = `${state.favorites.size} 条收藏`;
+    return;
+  }
+
+  let html = "";
+  let total = 0;
+
+  if (tab === "all") {
+    for (const sec of SECTIONS) {
+      const filtered = filterAndSort(VIDEOS.filter(v => v.category === sec.id));
+      total += filtered.length;
+      html += renderSection(sec, VIDEOS);
+    }
+  } else {
+    const sec = SECTIONS.find(s => s.id === tab);
+    if (sec) {
+      html = renderSection(sec, VIDEOS);
+      total = filterAndSort(VIDEOS.filter(v => v.category === sec.id)).length;
+    }
+  }
+
+  content.innerHTML = html || `<div class="fav-empty"><div class="emoji">🔍</div><p>暂无内容</p></div>`;
+  document.getElementById("countBadge").textContent = `共 ${total} 条`;
+}
+
+function renderAuthorFilter() {
+  const authors = getAuthors();
+  const container = document.getElementById("authorFilter");
+  container.innerHTML = `<button class="filter-btn ${!state.authorFilter ? "active" : ""}" onclick="setAuthor('')">全部作者</button>` +
+    authors.map(a => `<button class="filter-btn ${state.authorFilter === a ? "active" : ""}" onclick="setAuthor('${a}')">${a}</button>`).join("");
+}
+
+// ============================================================
+// EVENT HANDLERS
+// ============================================================
+function toggleFav(id, e) {
+  e.stopPropagation();
+  if (state.favorites.has(id)) {
+    state.favorites.delete(id);
+  } else {
+    state.favorites.add(id);
+  }
+  saveFavs();
+  render();
+}
+
+function setAuthor(a) {
+  state.authorFilter = a;
+  renderAuthorFilter();
+  render();
+}
+
+// Tabs
+document.getElementById("mainTabs").addEventListener("click", e => {
+  const tab = e.target.dataset.tab;
+  if (!tab) return;
+  state.activeTab = tab;
+  document.querySelectorAll(".tab").forEach(t => t.classList.remove("active"));
+  e.target.classList.add("active");
+  render();
+});
+
+// Search
+document.getElementById("searchInput").addEventListener("input", e => {
+  state.searchQuery = e.target.value.trim();
+  render();
+});
+
+// Sort
+document.getElementById("sortSelect").addEventListener("change", e => {
+  state.sort = e.target.value;
+  render();
+});
+
+// ============================================================
+// INIT
+// ============================================================
+renderAuthorFilter();
+render();
+</script>
+</body>
+</html>
