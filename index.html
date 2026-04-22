@@ -48,9 +48,8 @@
   .search-box input { width: 100%; padding: 9px 16px 9px 38px; border: 1px solid var(--border); border-radius: 24px; font-size: 14px; outline: none; background: #fff; transition: border .2s; }
   .search-box input:focus { border-color: var(--primary); }
   .search-box .icon { position: absolute; left: 12px; top: 50%; transform: translateY(-50%); color: var(--text-sub); font-size: 15px; }
-  .filter-group { display: flex; gap: 8px; flex-wrap: wrap; }
-  .filter-btn { padding: 7px 14px; border-radius: 20px; border: 1px solid var(--border); background: #fff; font-size: 13px; cursor: pointer; transition: all .2s; color: var(--text-sub); }
-  .filter-btn:hover, .filter-btn.active { border-color: var(--primary); color: var(--primary); background: var(--primary-light); }
+  .filter-group { display: none; }
+  .filter-btn { display: none; }
   .sort-select { padding: 7px 14px; border-radius: 20px; border: 1px solid var(--border); background: #fff; font-size: 13px; color: var(--text); outline: none; cursor: pointer; }
   .count-badge { font-size: 12px; color: var(--text-sub); margin-left: auto; white-space: nowrap; }
 
@@ -132,7 +131,6 @@
     <span class="icon">🔍</span>
     <input type="text" id="searchInput" placeholder="搜索视频标题、作者…">
   </div>
-  <div class="filter-group" id="authorFilter"></div>
   <select class="sort-select" id="sortSelect">
     <option value="date-desc">最新优先</option>
     <option value="date-asc">最旧优先</option>
@@ -166,7 +164,7 @@ const VIDEOS = [
     platform: "B站",
     type: "video",
     url: "https://www.bilibili.com/video/BV1ncwczbEoy",
-    thumb: "https://i2.hdslb.com/bfs/archive/360242927b53dec69d0a55abe05a1967613bfabd.jpg",
+    thumb: "thumbs/b_BV1ncwczbEoy.jpg",
     isNew: true,
   },
   {
@@ -182,7 +180,7 @@ const VIDEOS = [
     platform: "B站",
     type: "video",
     url: "https://www.bilibili.com/video/BV1eXszz2EBF",
-    thumb: "https://i2.hdslb.com/bfs/archive/a368da24c802e6c7b54d37d1098d9fb4c3a60cf7.jpg",
+    thumb: "thumbs/b_BV1eXszz2EBF.jpg",
     isNew: false,
   },
   // 🖼️ 海报
@@ -199,7 +197,7 @@ const VIDEOS = [
     platform: "B站",
     type: "video",
     url: "https://www.bilibili.com/video/BV1eXszz2EBF",
-    thumb: "https://i2.hdslb.com/bfs/archive/a368da24c802e6c7b54d37d1098d9fb4c3a60cf7.jpg",
+    thumb: "thumbs/b_BV1eXszz2EBF.jpg",
     isNew: false,
   },
   {
@@ -232,7 +230,7 @@ const VIDEOS = [
     platform: "B站",
     type: "video",
     url: "https://www.bilibili.com/video/BV1SBjuzKETN",
-    thumb: "https://i2.hdslb.com/bfs/archive/544d05d78589d4e844e69be04f2bceb27b82d2bd.jpg",
+    thumb: "thumbs/b_BV1SBjuzKETN.jpg",
     isNew: false,
   },
   {
@@ -248,7 +246,7 @@ const VIDEOS = [
     platform: "B站",
     type: "video",
     url: "https://www.bilibili.com/video/BV1aS3Dz3Edn",
-    thumb: "https://i0.hdslb.com/bfs/archive/06b91bf275cbc4f66f436f3eaa62d4be58257e5a.jpg",
+    thumb: "thumbs/b_BV1aS3Dz3Edn.jpg",
     isNew: false,
   },
   // 💻 UI交互
@@ -265,7 +263,7 @@ const VIDEOS = [
     platform: "B站",
     type: "video",
     url: "https://www.bilibili.com/video/BV1xLfNY5EQ4",
-    thumb: "https://i0.hdslb.com/bfs/archive/9418c484238f907775657db3281f26a3d0f5d970.jpg",
+    thumb: "thumbs/b_BV1xLfNY5EQ4.jpg",
     isNew: true,
   },
   {
@@ -281,7 +279,7 @@ const VIDEOS = [
     platform: "B站",
     type: "video",
     url: "https://www.bilibili.com/video/BV1P4dHB6Esb",
-    thumb: "https://i1.hdslb.com/bfs/archive/c1b74298dad3f43a9c5841e22fb583a81740a057.jpg",
+    thumb: "thumbs/b_BV1P4dHB6Esb.jpg",
     isNew: true,
   },
   // 🔬 测评
@@ -298,7 +296,7 @@ const VIDEOS = [
     platform: "B站",
     type: "video",
     url: "https://www.bilibili.com/video/BV1ncwczbEoy",
-    thumb: "https://i2.hdslb.com/bfs/archive/360242927b53dec69d0a55abe05a1967613bfabd.jpg",
+    thumb: "thumbs/b_BV1ncwczbEoy.jpg",
     isNew: true,
   },
   {
@@ -314,7 +312,7 @@ const VIDEOS = [
     platform: "B站",
     type: "video",
     url: "https://www.bilibili.com/video/BV1sKj8zUEut",
-    thumb: "https://i1.hdslb.com/bfs/archive/07432697f7b17174f40623ebdf9b337ef870c171.jpg",
+    thumb: "thumbs/b_BV1sKj8zUEut.jpg",
     isNew: false,
   },
   // 小红书 设计师雪梨
@@ -617,12 +615,7 @@ function render() {
   document.getElementById("countBadge").textContent = `共 ${total} 条`;
 }
 
-function renderAuthorFilter() {
-  const authors = getAuthors();
-  const container = document.getElementById("authorFilter");
-  container.innerHTML = `<button class="filter-btn ${!state.authorFilter ? "active" : ""}" onclick="setAuthor('')">全部作者</button>` +
-    authors.map(a => `<button class="filter-btn ${state.authorFilter === a ? "active" : ""}" onclick="setAuthor('${a}')">${a}</button>`).join("");
-}
+function renderAuthorFilter() { /* author pills removed */ }
 
 // ============================================================
 // EVENT HANDLERS
