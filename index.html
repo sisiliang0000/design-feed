@@ -37,6 +37,11 @@
   .tab-fav { color: var(--fav) !important; }
   .tab-fav.active { background: var(--fav) !important; color: #fff !important; }
 
+  /* ===== SECTION ANCHOR NAV ===== */
+  .sec-nav { max-width: 1400px; margin: 16px auto 0; padding: 0 24px; display: flex; gap: 8px; flex-wrap: wrap; }
+  .sec-nav-btn { padding: 5px 16px; border-radius: 20px; border: 1px solid var(--border); background: #fff; font-size: 13px; cursor: pointer; transition: all .2s; color: var(--text-sub); text-decoration: none; display: inline-flex; align-items: center; gap: 4px; }
+  .sec-nav-btn:hover { border-color: var(--primary); color: var(--primary); background: var(--primary-light); }
+
   /* ===== SEARCH / FILTER BAR ===== */
   .toolbar { max-width: 1400px; margin: 20px auto 0; padding: 0 24px; display: flex; align-items: center; gap: 12px; flex-wrap: wrap; }
   .search-box { position: relative; flex: 1; min-width: 200px; max-width: 360px; }
@@ -107,14 +112,18 @@
     <div class="logo"><span>🦐</span> 设计资讯虾</div>
     <div class="tabs" id="mainTabs">
       <button class="tab active" data-tab="all">🏠 全部</button>
-      <button class="tab" data-tab="selected">✨ 精选</button>
-      <button class="tab" data-tab="poster">🖼️ AI生海报</button>
-      <button class="tab" data-tab="logo">🎨 AI生Logo</button>
-      <button class="tab" data-tab="ui">💻 AI生交互/UI</button>
-      <button class="tab" data-tab="review">🔬 AI工具测评</button>
       <button class="tab tab-fav" data-tab="favorites">⭐ 我的收藏</button>
     </div>
   </div>
+</div>
+
+<!-- SECTION ANCHOR NAV (only shown in 'all' tab) -->
+<div class="sec-nav" id="secNav">
+  <a class="sec-nav-btn" href="#sec-selected">✨ 精选</a>
+  <a class="sec-nav-btn" href="#sec-poster">🖼️ AI生海报</a>
+  <a class="sec-nav-btn" href="#sec-logo">🎨 AI生Logo</a>
+  <a class="sec-nav-btn" href="#sec-ui">💻 AI生交互/UI</a>
+  <a class="sec-nav-btn" href="#sec-review">🔬 AI工具测评</a>
 </div>
 
 <!-- TOOLBAR -->
@@ -157,7 +166,7 @@ const VIDEOS = [
     platform: "B站",
     type: "video",
     url: "https://www.bilibili.com/video/BV1ncwczbEoy",
-    thumb: "thumbs/b_BV1ncwczbEoy.jpg",
+    thumb: "https://i2.hdslb.com/bfs/archive/360242927b53dec69d0a55abe05a1967613bfabd.jpg",
     isNew: true,
   },
   {
@@ -173,7 +182,7 @@ const VIDEOS = [
     platform: "B站",
     type: "video",
     url: "https://www.bilibili.com/video/BV1eXszz2EBF",
-    thumb: "thumbs/b_BV1eXszz2EBF.jpg",
+    thumb: "https://i2.hdslb.com/bfs/archive/a368da24c802e6c7b54d37d1098d9fb4c3a60cf7.jpg",
     isNew: false,
   },
   // 🖼️ 海报
@@ -190,7 +199,7 @@ const VIDEOS = [
     platform: "B站",
     type: "video",
     url: "https://www.bilibili.com/video/BV1eXszz2EBF",
-    thumb: "thumbs/b_BV1eXszz2EBF.jpg",
+    thumb: "https://i2.hdslb.com/bfs/archive/a368da24c802e6c7b54d37d1098d9fb4c3a60cf7.jpg",
     isNew: false,
   },
   {
@@ -223,7 +232,7 @@ const VIDEOS = [
     platform: "B站",
     type: "video",
     url: "https://www.bilibili.com/video/BV1SBjuzKETN",
-    thumb: "thumbs/b_BV1SBjuzKETN.jpg",
+    thumb: "https://i2.hdslb.com/bfs/archive/544d05d78589d4e844e69be04f2bceb27b82d2bd.jpg",
     isNew: false,
   },
   {
@@ -239,7 +248,7 @@ const VIDEOS = [
     platform: "B站",
     type: "video",
     url: "https://www.bilibili.com/video/BV1aS3Dz3Edn",
-    thumb: "thumbs/b_BV1aS3Dz3Edn.jpg",
+    thumb: "https://i0.hdslb.com/bfs/archive/06b91bf275cbc4f66f436f3eaa62d4be58257e5a.jpg",
     isNew: false,
   },
   // 💻 UI交互
@@ -256,7 +265,7 @@ const VIDEOS = [
     platform: "B站",
     type: "video",
     url: "https://www.bilibili.com/video/BV1xLfNY5EQ4",
-    thumb: "thumbs/b_BV1xLfNY5EQ4.jpg",
+    thumb: "https://i0.hdslb.com/bfs/archive/9418c484238f907775657db3281f26a3d0f5d970.jpg",
     isNew: true,
   },
   {
@@ -272,7 +281,7 @@ const VIDEOS = [
     platform: "B站",
     type: "video",
     url: "https://www.bilibili.com/video/BV1P4dHB6Esb",
-    thumb: "thumbs/b_BV1P4dHB6Esb.jpg",
+    thumb: "https://i1.hdslb.com/bfs/archive/c1b74298dad3f43a9c5841e22fb583a81740a057.jpg",
     isNew: true,
   },
   // 🔬 测评
@@ -289,7 +298,7 @@ const VIDEOS = [
     platform: "B站",
     type: "video",
     url: "https://www.bilibili.com/video/BV1ncwczbEoy",
-    thumb: "thumbs/b_BV1ncwczbEoy.jpg",
+    thumb: "https://i2.hdslb.com/bfs/archive/360242927b53dec69d0a55abe05a1967613bfabd.jpg",
     isNew: true,
   },
   {
@@ -305,7 +314,7 @@ const VIDEOS = [
     platform: "B站",
     type: "video",
     url: "https://www.bilibili.com/video/BV1sKj8zUEut",
-    thumb: "thumbs/b_BV1sKj8zUEut.jpg",
+    thumb: "https://i1.hdslb.com/bfs/archive/07432697f7b17174f40623ebdf9b337ef870c171.jpg",
     isNew: false,
   },
   // 小红书 设计师雪梨
@@ -583,30 +592,25 @@ function renderFavorites() {
 
 function render() {
   const content = document.getElementById("mainContent");
+  const secNav = document.getElementById("secNav");
   const tab = state.activeTab;
 
   if (tab === "favorites") {
     content.innerHTML = renderFavorites();
+    secNav.style.display = "none";
     document.getElementById("toolbar").style.display = "flex";
     document.getElementById("countBadge").textContent = `${state.favorites.size} 条收藏`;
     return;
   }
 
+  // all tab — show all sections
+  secNav.style.display = "flex";
   let html = "";
   let total = 0;
-
-  if (tab === "all") {
-    for (const sec of SECTIONS) {
-      const filtered = filterAndSort(VIDEOS.filter(v => v.category === sec.id));
-      total += filtered.length;
-      html += renderSection(sec, VIDEOS);
-    }
-  } else {
-    const sec = SECTIONS.find(s => s.id === tab);
-    if (sec) {
-      html = renderSection(sec, VIDEOS);
-      total = filterAndSort(VIDEOS.filter(v => v.category === sec.id)).length;
-    }
+  for (const sec of SECTIONS) {
+    const filtered = filterAndSort(VIDEOS.filter(v => v.category === sec.id));
+    total += filtered.length;
+    html += renderSection(sec, VIDEOS);
   }
 
   content.innerHTML = html || `<div class="fav-empty"><div class="emoji">🔍</div><p>暂无内容</p></div>`;
