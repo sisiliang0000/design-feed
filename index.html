@@ -37,13 +37,18 @@
   .tab-fav { color: var(--fav) !important; }
   .tab-fav.active { background: var(--fav) !important; color: #fff !important; }
 
-  /* ===== SECTION ANCHOR NAV ===== */
-  .sec-nav { max-width: 1400px; margin: 16px auto 0; padding: 0 24px; display: flex; gap: 8px; flex-wrap: wrap; }
-  .sec-nav-btn { padding: 5px 16px; border-radius: 20px; border: 1px solid var(--border); background: #fff; font-size: 13px; cursor: pointer; transition: all .2s; color: var(--text-sub); text-decoration: none; display: inline-flex; align-items: center; gap: 4px; }
+  /* ===== STICKY SUBNAV (anchor nav + search on same row) ===== */
+  .subnav-bar { position: sticky; top: 60px; z-index: 90; background: var(--bg); border-bottom: 1px solid var(--border); box-shadow: 0 2px 8px rgba(0,0,0,0.04); }
+  .subnav-inner { max-width: 1400px; margin: 0 auto; padding: 0 24px; display: flex; align-items: center; gap: 8px; height: 48px; }
+  .sec-nav { display: flex; gap: 6px; flex: 1; overflow-x: auto; scrollbar-width: none; align-items: center; }
+  .sec-nav::-webkit-scrollbar { display: none; }
+  .sec-nav-btn { padding: 5px 14px; border-radius: 20px; border: 1px solid var(--border); background: #fff; font-size: 13px; cursor: pointer; transition: all .2s; color: var(--text-sub); text-decoration: none; display: inline-flex; align-items: center; gap: 4px; white-space: nowrap; }
   .sec-nav-btn:hover { border-color: var(--primary); color: var(--primary); background: var(--primary-light); }
+  .sec-nav-btn.top-btn { border-color: var(--primary); color: var(--primary); font-weight: 600; }
+  .sec-nav-btn.top-btn:hover { background: var(--primary); color: #fff; }
 
   /* ===== SEARCH / FILTER BAR ===== */
-  .toolbar { max-width: 1400px; margin: 20px auto 0; padding: 0 24px; display: flex; align-items: center; gap: 12px; flex-wrap: wrap; }
+  .toolbar { max-width: 1400px; margin: 0; padding: 0; display: flex; align-items: center; gap: 8px; flex-shrink: 0; }
   .search-box { position: relative; flex: 1; min-width: 200px; max-width: 360px; }
   .search-box input { width: 100%; padding: 9px 16px 9px 38px; border: 1px solid var(--border); border-radius: 24px; font-size: 14px; outline: none; background: #fff; transition: border .2s; }
   .search-box input:focus { border-color: var(--primary); }
@@ -116,28 +121,31 @@
   </div>
 </div>
 
-<!-- SECTION ANCHOR NAV (only shown in 'all' tab) -->
-<div class="sec-nav" id="secNav">
-  <a class="sec-nav-btn" href="#sec-selected">✨ 精选</a>
-  <a class="sec-nav-btn" href="#sec-poster">🖼️ AI生海报</a>
-  <a class="sec-nav-btn" href="#sec-logo">🎨 AI生Logo</a>
-  <a class="sec-nav-btn" href="#sec-ui">💻 AI生交互/UI</a>
-  <a class="sec-nav-btn" href="#sec-review">🔬 AI工具测评</a>
-</div>
-
-<!-- TOOLBAR -->
-<div class="toolbar" id="toolbar">
-  <div class="search-box">
-    <span class="icon">🔍</span>
-    <input type="text" id="searchInput" placeholder="搜索视频标题、作者…">
+<!-- STICKY SUBNAV: anchor nav + search on one fixed row -->
+<div class="subnav-bar" id="subnavBar">
+  <div class="subnav-inner">
+    <div class="sec-nav" id="secNav">
+      <a class="sec-nav-btn top-btn" href="#" onclick="window.scrollTo({top:0,behavior:'smooth'});return false;">⬆ 全部</a>
+      <a class="sec-nav-btn" href="#sec-selected">✨ 精选</a>
+      <a class="sec-nav-btn" href="#sec-poster">🖼️ AI生海报</a>
+      <a class="sec-nav-btn" href="#sec-logo">🎨 AI生Logo</a>
+      <a class="sec-nav-btn" href="#sec-ui">💻 AI生交互/UI</a>
+      <a class="sec-nav-btn" href="#sec-review">🔬 AI工具测评</a>
+    </div>
+    <div class="toolbar" id="toolbar">
+      <div class="search-box">
+        <span class="icon">🔍</span>
+        <input type="text" id="searchInput" placeholder="搜索…">
+      </div>
+      <select class="sort-select" id="sortSelect">
+        <option value="date-desc">最新优先</option>
+        <option value="date-asc">最旧优先</option>
+        <option value="play-desc">播放最多</option>
+        <option value="collect-desc">收藏最多</option>
+      </select>
+      <span class="count-badge" id="countBadge"></span>
+    </div>
   </div>
-  <select class="sort-select" id="sortSelect">
-    <option value="date-desc">最新优先</option>
-    <option value="date-asc">最旧优先</option>
-    <option value="play-desc">播放最多</option>
-    <option value="collect-desc">收藏最多</option>
-  </select>
-  <span class="count-badge" id="countBadge"></span>
 </div>
 
 <!-- MAIN CONTENT -->
@@ -590,19 +598,18 @@ function renderFavorites() {
 
 function render() {
   const content = document.getElementById("mainContent");
-  const secNav = document.getElementById("secNav");
+  const subnavBar = document.getElementById("subnavBar");
   const tab = state.activeTab;
 
   if (tab === "favorites") {
     content.innerHTML = renderFavorites();
-    secNav.style.display = "none";
-    document.getElementById("toolbar").style.display = "flex";
+    subnavBar.style.display = "none";
     document.getElementById("countBadge").textContent = `${state.favorites.size} 条收藏`;
     return;
   }
 
-  // all tab — show all sections
-  secNav.style.display = "flex";
+  // all tab — show sticky subnav
+  subnavBar.style.display = "";
   let html = "";
   let total = 0;
   for (const sec of SECTIONS) {
